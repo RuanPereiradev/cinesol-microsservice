@@ -1,0 +1,202 @@
+// libs/database/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  output          = "../../../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+// Enumerações para tipos e status
+enum MovieStatus {
+  NOW_SHOWING
+  COMING_SOON
+}
+
+enum SeatType {
+  REGULAR
+  WHEELCHAIR
+  OBESE
+}
+
+enum SessionAudio {
+  DUBBED
+  SUBTITLED
+}
+
+enum SessionFormat {
+  TWO_D    // Alterado de _2D
+  THREE_D  // Alterado de _3D
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+  FAILED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  PIX
+}
+
+// Enumeração de Roles (RF-A05)
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// Modelo de Usuário (RF-A)
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  password     String
+  role         UserRole @default(USER)
+  orders       Order[]
+  resetTokens  PasswordResetToken[]
+  seatLocks    SeatLock[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Modelos do Catálogo (RF-B)
+model Movie {
+  id              String      @id @default(uuid())
+  title           String
+  synopsis        String
+  durationMinutes Int
+  posterUrl       String // URL virá do Firebase Storage (RF-G03)
+  genres          String[]
+  status          MovieStatus
+  sessions        Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Auditorium {
+  id       String    @id @default(uuid())
+  name     String // Ex: "Sala 1"
+  seats    Seat[]
+  sessions Session[]
+}
+
+model Session {
+  id           String        @id @default(uuid())
+  startTime    DateTime
+  audio        SessionAudio
+  format       SessionFormat
+  price        Float // Preço base da sessão
+
+  movieId      String
+  movie        Movie         @relation(fields: [movieId], references: [id])
+  auditoriumId String
+  auditorium   Auditorium    @relation(fields: [auditoriumId], references: [id])
+
+  tickets   Ticket[]
+  seatLocks SeatLock[]
+}
+
+// Modelos de Poltronas (RF-C)
+model Seat {
+  id           String     @id @default(uuid())
+  row          String // Ex: "A"
+  number       Int    // Ex: 1
+  type         SeatType   @default(REGULAR)
+  auditoriumId String
+  auditorium   Auditorium @relation(fields: [auditoriumId], references: [id])
+
+  tickets   Ticket[]
+  seatLocks SeatLock[]
+}
+
+// Modelos de Produtos (RF-D)
+model Product {
+  id          String      @id @default(uuid())
+  name        String // Ex: "Combo Pequeno"
+  description String
+  price       Float
+  imageUrl    String? // URL da imagem do produto (também pode vir do Firebase)
+  orderItems  OrderItem[]
+}
+
+// Modelos de Compra e Pagamento (RF-E)
+model Order {
+  id         String      @id @default(uuid())
+  status     OrderStatus @default(PENDING)
+  totalPrice Float
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  tickets    Ticket[]
+  items      OrderItem[]
+  payments   Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Ticket {
+  id        String @id @default(uuid())
+  price     Float // Preço final do ingresso (pode ser o preço da sessão)
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  seatId    String
+  seat      Seat     @relation(fields: [seatId], references: [id])
+
+  @@unique([sessionId, seatId]) // Garante que um assento só seja vendido uma vez por sessão
+}
+
+model OrderItem {
+  id        String @id @default(uuid())
+  quantity  Int
+  unitPrice Float
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+  method    PaymentMethod
+  status    OrderStatus
+  amount    Float
+  orderId   String
+  order     Order         @relation(fields: [orderId], references: [id])
+  createdAt DateTime      @default(now())
+}
+
+// --- Modelos Adicionais (Reset de Senha & Bloqueio de Poltronas) ---
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// Uso de job para a remoção automática de locks expirados (RN-11, RN-12, RN-13)
+model SeatLock {
+  id        String   @id @default(uuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  seatId    String
+  seat      Seat     @relation(fields: [seatId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  lockedAt  DateTime @default(now())
+
+  @@unique([sessionId, seatId])
+  @@index([expiresAt])
+}
