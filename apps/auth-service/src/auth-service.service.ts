@@ -1,10 +1,13 @@
-import { ConflictException, Inject, Injectable, OnModuleInit, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, OnModuleInit, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ClientKafka } from '@nestjs/microservices';
-import { LoginDto, RegisterDto } from 'y/common/dto';
+import { LoginDto, RegisterDto } from 'y/common/dto/auth';
 import { DatabaseService } from 'y/database';
 import { KAFKA_SERVICE, KAFKA_TOPICS } from 'y/kafka';
 import * as bcrypt from 'bcrypt';
+import { Email } from 'y/common/value-objects/email';
+import { Password } from 'y/common/value-objects/password';
+import { User, UserRole } from 'y/common/entities/user.entity';
 
 @Injectable()
 export class AuthServiceService implements OnModuleInit{
@@ -19,22 +22,39 @@ export class AuthServiceService implements OnModuleInit{
   }
 
   async register(dto: RegisterDto){
+
+    const emailRes = Email.create(dto.email)
+    const passwordRes = Password.create(dto.password) 
+
+    if(emailRes.isFailure) throw new BadRequestException(emailRes.getError())
+    if(passwordRes.isFailure) throw new BadRequestException(passwordRes.getError())
+
+    const emailVO = emailRes.getValue();
+    const passwordVO = passwordRes.getValue();
+
     const userExists = await this.dbService.user.findUnique({
-      where: { email: dto.email },
+      where: { email: emailVO.value },
     });
 
     if(userExists){
       throw new ConflictException('Este e-mail já está cadastrado.')
     }
 
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(dto.password, salt);
+    const hashedPassword = await passwordVO.toHash();
+
+    const userEntity = new User({
+      name: dto.name,
+      email: emailVO,
+      role: UserRole.USER
+    })
 
     const newUser = await this.dbService.user.create({
       data: {
-        name: dto.name,
-        email: dto.email,
+        id: userEntity.id,
+        name: userEntity.name,
+        email: emailVO.value,
         password: hashedPassword,
+        role: userEntity.role
       },
     });
 
@@ -60,7 +80,7 @@ export class AuthServiceService implements OnModuleInit{
 
     this.kafkaClient.emit(KAFKA_TOPICS.USER_LOGIN, {
       userId: userExists.id,
-      timeStamp: new  Date().toISOString,
+      timeStamp: new  Date().toISOString(),
     });
 
     return {
@@ -81,7 +101,7 @@ if (!userExists) {
     throw new UnauthorizedException('Usuário não encontrado');
   }
 
-  // Removemos a senha antes de retornar
   const { password, ...result } = userExists;
-  return result;  }
+  return result;  
+  }
 }

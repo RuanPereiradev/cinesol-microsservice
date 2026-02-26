@@ -22,7 +22,7 @@ export class AuthService {
       async login(data: { email: string; password: string; }){
         try {
             const response = await firstValueFrom(
-                this.httpService.post(`${this.authServiceUrl}/register`, data),
+                this.httpService.post(`${this.authServiceUrl}/login`, data),
             );
             return response.data;
         } catch (error) {
