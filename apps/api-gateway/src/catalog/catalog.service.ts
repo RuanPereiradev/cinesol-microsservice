@@ -1,8 +1,9 @@
 import { HttpService } from '@nestjs/axios';
 import { HttpException, Injectable } from '@nestjs/common';
-import { MovieStatus } from '@prisma/client';
+import { MovieStatus, SessionAudio, SessionFormat } from '@prisma/client';
 import { firstValueFrom } from 'rxjs';
 import { SERVICES_PORTS } from 'y/common';
+import { CreateAditoriumDto } from 'y/common/dto/catalog/createAuditorium.dto';
 
 @Injectable()
 export class CatalogService {
@@ -33,12 +34,36 @@ export class CatalogService {
         }
     }
 
-   async findOne(id: string) { 
+    async findOne(id: string) { 
         try {
             const response = await firstValueFrom(
                 this.httpService.get(`${this.catalogServiceUrl}/${id}`)
             );
             return response.data;
+        } catch (error) {
+            this.handleError(error)
+        }
+    }
+
+    async createAuditorium(data: {name: string; rowsCount: number; seatsPerRow: number}){
+        try {
+            const response = await firstValueFrom(
+                this.httpService.post(`${this.catalogServiceUrl}/auditorium`, data),
+            );
+
+            return response.data;
+        } catch (error) {
+            this.handleError(error)
+        }
+    }
+
+    async createSession(data: { startTime: string; audio: SessionAudio; format: SessionFormat; price: number; movieId: string; auditoriumId: string }){
+        try {
+            const response = await firstValueFrom(
+                this.httpService.post(`${this.catalogServiceUrl}/session`, data),
+            );
+            
+            return response.data
         } catch (error) {
             this.handleError(error)
         }

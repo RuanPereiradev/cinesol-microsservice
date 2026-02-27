@@ -1,7 +1,8 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from "@nestjs/common";
 import { CatalogService } from "./catalog.service";
-import { CreateMovieDto } from "y/common/dto/catalog";
+import { CreateAditoriumDto, CreateMovieDto } from "y/common/dto/catalog";
 import { MovieStatus } from "@prisma/client";
+import { CreateSessionDto } from "y/common/dto/catalog/createSession.dto";
 
 @Controller('movie')
 export class CatalogController {
@@ -20,5 +21,16 @@ export class CatalogController {
     @Get(':id')
     async getById(@Param('id', new ParseUUIDPipe()) id: string) {
         return this.catalogService.findOne(id)
+    }
+
+    @Post('auditorium')
+    async createAuditorium(@Body() dto: CreateAditoriumDto) {
+        return this.catalogService.createAuditorium(dto);
+    }
+    
+    @Post('session')
+      async createSession(@Body() dto: CreateSessionDto) {
+        return this.catalogService.createSession(dto);
       }
+    
 }

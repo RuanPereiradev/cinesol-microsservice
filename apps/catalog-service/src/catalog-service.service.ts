@@ -1,12 +1,14 @@
 import { ConflictException, Inject, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
-import { MovieStatus } from '@prisma/client';
+import { MovieStatus, SeatType } from '@prisma/client';
 import { RegisterDto } from 'y/common/dto/auth';
 import { CreateMovieDto } from 'y/common/dto/catalog';
+import { CreateAditoriumDto } from 'y/common/dto/catalog/createAuditorium.dto';
 import { Movie } from 'y/common/entities/movie.entity';
 import { DatabaseService } from 'y/database';
 import { KAFKA_SERVICE, KAFKA_TOPICS } from 'y/kafka';
-
+import { Prisma } from '@prisma/client';
+import { CreateSessionDto } from 'y/common/dto/catalog/createSession.dto';
 @Injectable()
 export class CatalogServiceService implements OnModuleInit {
   constructor(
@@ -81,13 +83,66 @@ export class CatalogServiceService implements OnModuleInit {
       synopsis: newMovie.synopsis
     });
 
-
     return newMovie;
+  }
 
-    
+  async createAuditorium(dto: CreateAditoriumDto){
+    return await this.dbService.$transaction(async (tx) => {
+      const auditorium = await tx.auditorium.create({
+        data: { name: dto.name },
+      });
+
+      const seatsData: Prisma.SeatCreateManyInput[] = [];
+
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+      for(let r = 0; r < dto.rowsCount; r++){
+        for (let s = 1; s <= dto.seatsPerRow; s++) { 
+          seatsData.push({
+            row: alphabet[r],
+            number: s,
+            auditoriumId: auditorium.id,
+            type: SeatType.REGULAR,
+          });
+       }
+    }
+
+    await tx.seat.createMany({data: seatsData});
+
+    return auditorium;
+    });
+  }
+
+  
+  async createSession(dto: CreateSessionDto){
+    const filmExist = await this.dbService.movie.findUnique({
+      where: {id: dto.movieId}
+    });
+    if(!filmExist) throw new NotFoundException('Filme não encontrado')
+      
+    const auditorium = await this.dbService.auditorium.findUnique({
+      where: { id: dto.auditoriumId }
+    });
+    if(!auditorium) throw new NotFoundException('Sala não encontrada');
+
+    return await this.dbService.session.create({
+      data: {
+        startTime: new Date(dto.startTime),
+        audio: dto.audio,
+        format: dto.format,
+        price: dto.price,
+        movieId: dto.movieId,
+        auditoriumId: dto.auditoriumId
+      },
+      include: {
+        movie: { select: { title: true } },
+        auditorium: { select: { name: true } }
+      }
+    });
   }
 
   getHello(): string {
     return 'Hello World!';
   }
+
 }
