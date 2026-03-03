@@ -32,5 +32,9 @@ export class CatalogController {
       async createSession(@Body() dto: CreateSessionDto) {
         return this.catalogService.createSession(dto);
       }
-    
+    @Get('session/:id/seats')
+    async getSessionSeats(@Param('id', ParseUUIDPipe) sessionId: string){
+    return this.catalogService.getSessionSeats(sessionId)
+  }
+
 }

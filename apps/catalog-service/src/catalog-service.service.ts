@@ -125,7 +125,7 @@ export class CatalogServiceService implements OnModuleInit {
     });
     if(!auditorium) throw new NotFoundException('Sala não encontrada');
 
-    return await this.dbService.session.create({
+    const session = await this.dbService.session.create({
       data: {
         startTime: new Date(dto.startTime),
         audio: dto.audio,
@@ -139,8 +139,46 @@ export class CatalogServiceService implements OnModuleInit {
         auditorium: { select: { name: true } }
       }
     });
+    this.kafkaClient.emit('catalog.session.created', {
+    sessionId: session.id,
+    startTime: session.startTime,
+    movieTitle: session.movie.title
+  });
+
+  return session
+
   }
 
+  async getSessionSeats(sessionId: string){
+    const session = await this.dbService.session.findUnique({
+      where: { id: sessionId },
+      include: {
+        auditorium: {
+          include: {
+            seats: true
+          }
+        },
+        tickets: {
+          select: { seatId: true }
+        },
+        seatLocks: {
+          where: { expiresAt: { gt: new Date() }},
+          select: { seatId: true }
+        }
+      }
+    });
+    if(!session) throw new NotFoundException('Sessão não encontrada');
+
+    const occupiedSeats = new Set([
+      ...session.tickets.map(t => t.seatId),
+      ...session.seatLocks.map(l => l.seatId)
+    ]);
+
+    return session.auditorium.seats.map(seat => ({
+      ...seat,
+    isAvailable: !occupiedSeats.has(seat.id)
+    }));
+  }
   getHello(): string {
     return 'Hello World!';
   }

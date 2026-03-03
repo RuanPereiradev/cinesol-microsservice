@@ -61,14 +61,25 @@ export class CatalogService {
         try {
             const response = await firstValueFrom(
                 this.httpService.post(`${this.catalogServiceUrl}/session`, data),
-            );
-            
+            );            
             return response.data
         } catch (error) {
             this.handleError(error)
         }
     }
 
+
+    async getSessionSeats(id: string){
+        try {
+            const response = await firstValueFrom(
+                this.httpService.get(`${this.catalogServiceUrl}/session/${id}/seats`)
+            )
+            return response.data
+        } catch (error) {
+            this.handleError(error)
+        }
+
+    };
     private handleError(error: any): never {
         if(error.response){
             throw new HttpException(error.response.data, error.response.status)
