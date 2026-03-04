@@ -11,8 +11,11 @@
 ### O **CineSol** é uma solução robusta para gestão de cinemas e vendas de ingressos, utilizando arquitetura de microserviços para garantir escalabilidade e resiliência.
 
 ---
+<img width="1501" height="792" alt="Screenshot from 2026-03-01 21-07-54" src="https://github.com/user-attachments/assets/5afe4e4b-88d2-40ab-8471-136148828eff" />
 
 ## 🏗️ Arquitetura do Sistema
+
+
 
 O projeto utiliza **Domain-Driven Design (DDD)** e comunicação orientada a eventos.
 
