@@ -6,7 +6,9 @@ import { BookingProducts } from "../../domain/entities/bookingProducts";
 import { SeatLocks } from "../../domain/entities/seatLocks";
 import { Result } from "y/common/env/result";
 import { OrderStatus } from "@prisma/client";
+import { Injectable } from "@nestjs/common";
 
+@Injectable()
 export class PrismaBookingRepository implements IBookingRepository{
     constructor(private readonly dbService: DatabaseService){}
 

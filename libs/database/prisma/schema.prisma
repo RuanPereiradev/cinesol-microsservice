@@ -3,7 +3,6 @@
 generator client {
   provider = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
-  output          = "../../../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -144,6 +143,7 @@ model Order {
 model Ticket {
   id        String @id @default(uuid())
   price     Float // Preço final do ingresso (pode ser o preço da sessão)
+  type      String
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id])
   sessionId String

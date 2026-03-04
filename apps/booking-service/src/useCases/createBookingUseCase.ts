@@ -1,14 +1,12 @@
 import { Result } from "y/common/env/result";
 import { Booking } from "../domain/entities/booking";
-import * as ibookingRepository from "../repositories/interfaces/ibooking.repository";
-import { IUser } from "y/common";
 import { Inject } from "@nestjs/common";
-import { KAFKA_SERVICE } from "y/kafka";
+import { KAFKA_SERVICE, KAFKA_TOPICS } from "y/kafka";
 import { ClientKafka } from "@nestjs/microservices";
-import { DatabaseService } from "y/database";
 import { Ticket, TicketType } from "../domain/entities/ticket";
 import { SeatLocks } from "../domain/entities/seatLocks";
 import { BookingProducts } from "../domain/entities/bookingProducts";
+import { PrismaBookingRepository } from "../repositories/prisma/prismaBooking.repository";
 
 interface CreateBookingRequest {
     userId: string
@@ -22,8 +20,12 @@ interface CreateBookingRequest {
 export class CreateBookingUseCase {
     constructor(
         @Inject(KAFKA_SERVICE) private readonly kafkaClient: ClientKafka,
-        private bookingRepository: ibookingRepository.IBookingRepository
+        @Inject('IBookingRepository') private readonly bookingRepository: PrismaBookingRepository
 ){}
+
+    async onModuleInit(){
+    await this.kafkaClient.connect();
+    }
 
     async execute(request: CreateBookingRequest): Promise <Result<Booking>>{
         try {
@@ -66,12 +68,12 @@ export class CreateBookingUseCase {
                 locks
             );
             //emitir ao kafka
-            this.kafkaClient.emit('booking_created,', JSON.stringify({
+            this.kafkaClient.emit(KAFKA_TOPICS.ORDER_CREATED, {
                 bookingId: savedBooking.id,
                 userId: savedBooking.userId,
                 totalAmount: savedBooking.totalPrice,
                 expiresAt: savedBooking.expiresAt
-            }));
+            });
             return Result.ok<Booking>(savedBooking);
         } catch (error){ 
             return Result.fail<Booking>(error.message || "Erro interno ao processar reserve.");
