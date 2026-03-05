@@ -51,11 +51,11 @@ export class CatalogServiceService implements OnModuleInit {
   }
   
   async register(dto: CreateMovieDto){
-    const titileExists = await this.dbService.movie.findFirst({
+    const titleExists = await this.dbService.movie.findFirst({
       where: { title: dto.title },
     });
 
-    if(titileExists) throw new ConflictException('Este titulo já existe');
+    if(titleExists) throw new ConflictException('Este titulo já existe');
 
     const movieEntity = new Movie({
       title: dto.title,
@@ -125,7 +125,7 @@ export class CatalogServiceService implements OnModuleInit {
     });
     if(!auditorium) throw new NotFoundException('Sala não encontrada');
 
-    const session = await this.dbService.session.create({
+    const session =  await this.dbService.session.create({
       data: {
         startTime: new Date(dto.startTime),
         audio: dto.audio,

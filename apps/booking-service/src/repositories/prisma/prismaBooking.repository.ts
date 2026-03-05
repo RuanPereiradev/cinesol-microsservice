@@ -33,8 +33,10 @@ export class PrismaBookingRepository implements IBookingRepository{
             //Criar a Ordem
             const createdOrder = await tx.order.create({
                 data: {
-                    userId: booking.userId,
-                    totalPrice: booking.totalPrice,
+                    user: {
+                        connect: {id: booking.userId}
+                    },
+                    totalPrice: Number(booking.totalPrice) || 0,
                     status: 'PENDING',
                 }
             });
