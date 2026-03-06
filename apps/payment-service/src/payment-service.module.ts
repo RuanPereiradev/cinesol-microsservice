@@ -6,7 +6,7 @@ import { DatabaseModule } from 'y/database';
 
 @Module({
   imports: [
-    KafkaModule.register('catalog-service-group'),
+    KafkaModule.register('payment-service-group'),
     DatabaseModule
   ],
   controllers: [PaymentServiceController],

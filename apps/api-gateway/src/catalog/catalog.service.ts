@@ -85,5 +85,5 @@ export class CatalogService {
             throw new HttpException(error.response.data, error.response.status)
         }
             throw new HttpException('Something went wrong', 503);
-        }
+    }
 }

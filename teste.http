@@ -1,0 +1,45 @@
+### Variáveis de Ambiente
+@gatewayUrl = http://localhost:3000
+@paymentServiceUrl = http://localhost:3004
+@orderId = d4dfd506-2497-49f2-b223-6d2ea5c0161e
+@userId = 7515bcb1-6d13-413a-b428-4f4e7adffaf3
+
+### 1. Teste via API GATEWAY (Porta 3000)
+# Se o Gateway estiver funcionando, este deve ser o caminho oficial
+POST {{gatewayUrl}}/payment/registerPayment
+Content-Type: application/json
+
+{
+  "orderId": "{{orderId}}",
+  "userId": "{{userId}}",
+  "method": "PIX",
+  "amount": 50.00
+}
+
+###
+
+### 2. Teste DIRETO no Microserviço (Porta 3002)
+# Use este se o de cima der 404 para testar o microserviço isolado
+POST {{paymentServiceUrl}}/registerPayment
+Content-Type: application/json
+
+{
+  "orderId": "{{orderId}}",
+  "userId": "{{userId}}",
+  "method": "PIX",
+  "amount": 50.00
+}
+
+###
+
+### 3. Teste DIRETO (Sem prefixo /payment)
+# Alguns microserviços não usam o prefixo do gateway internamente
+POST {{paymentServiceUrl}}/registerPayment
+Content-Type: application/json
+
+{
+  "orderId": "{{orderId}}",
+  "userId": "{{userId}}",
+  "method": "PIX",
+  "amount": 50.00
+}
