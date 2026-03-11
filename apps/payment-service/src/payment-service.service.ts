@@ -28,6 +28,10 @@ export class PaymentServiceService implements OnModuleInit {
 
     if(!orderExist) throw new NotFoundException('order not found');
 
+    if(dto.amount < orderExist.totalPrice){
+      throw new ForbiddenException(`Valor insuficiente. Esperado: ${orderExist.totalPrice}, Recebido: ${dto.amount}`)
+    }
+
     if(orderExist.status === 'PAID' || orderExist.status === 'CANCELLED'){
       throw new UnauthorizedException('order already paid or canceled');
     }
@@ -37,7 +41,7 @@ export class PaymentServiceService implements OnModuleInit {
         data: {
           orderId: dto.orderId,
           method: dto.method,
-          amount: dto.amount,
+          amount: orderExist.totalPrice,
           status: 'PAID'
         }
       });

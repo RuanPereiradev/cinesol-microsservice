@@ -56,7 +56,7 @@ export class CatalogServiceService implements OnModuleInit {
     });
 
     if(titleExists) throw new ConflictException('Este titulo já existe');
-
+    
     const movieEntity = new Movie({
       title: dto.title,
       synopsis: dto.synopsis,

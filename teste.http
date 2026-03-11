@@ -1,8 +1,9 @@
 ### Variáveis de Ambiente
 @gatewayUrl = http://localhost:3000
 @paymentServiceUrl = http://localhost:3004
-@orderId = d4dfd506-2497-49f2-b223-6d2ea5c0161e
+@orderId = f9a39c50-440b-484a-ad8e-1e1f43e3b068
 @userId = 7515bcb1-6d13-413a-b428-4f4e7adffaf3
+@bookingUrl = http://localhost:3003
 
 ### 1. Teste via API GATEWAY (Porta 3000)
 # Se o Gateway estiver funcionando, este deve ser o caminho oficial
@@ -36,10 +37,22 @@ Content-Type: application/json
 # Alguns microserviços não usam o prefixo do gateway internamente
 POST {{paymentServiceUrl}}/registerPayment
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNGMzYmNiYS04MGE0LTRhNmMtYjgyMy1lODZiMjBmMWMwNGIiLCJlbWFpbCI6ImFpYWlpYWlAZXhlbXBsby5jb20iLCJpYXQiOjE3NzMyNTM5MjgsImV4cCI6MTc3MzM0MDMyOH0.XAjvrWOVAWYF8lWDlkNmyLLh8HM4n-ZXCxWtJXsvMQk
 
 {
   "orderId": "{{orderId}}",
-  "userId": "{{userId}}",
   "method": "PIX",
   "amount": 50.00
+}
+### BookingUrl
+POST {{bookingUrl}}/register
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNGMzYmNiYS04MGE0LTRhNmMtYjgyMy1lODZiMjBmMWMwNGIiLCJlbWFpbCI6ImFpYWlpYWlAZXhlbXBsby5jb20iLCJpYXQiOjE3NzMyNTM5MjgsImV4cCI6MTc3MzM0MDMyOH0.XAjvrWOVAWYF8lWDlkNmyLLh8HM4n-ZXCxWtJXsvMQk
+
+{
+  "sessionId": "19b19f8d-43f8-4962-9952-03a41fa5940f",
+  "seatIds": ["14906fff-13c3-485d-8835-dce01dfd2c35"],
+  "ticketType": "INTEIRA",
+  "basePrice": 40.00,
+  "products": []
 }

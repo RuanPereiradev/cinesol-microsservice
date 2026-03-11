@@ -47,15 +47,18 @@ export class CreateBookingUseCase {
             //cria ingressos com base na logica inteira/meia
             const ticket = Ticket.createMany(seatIds, sessionId,basePrice, ticketType)
 
+            const productsList = products || []
             //cria os produtos da bomboniere(loja)
-            const bookingProducts = products?.map(p => 
+            const bookingProducts = productsList?.map(p => 
                 new BookingProducts(p.productId, p.quantity, p.unitPrice) ||  []
             )
 
             //soma de ingressos e produtos
-            const totalTickets = ticket.reduce((sum, t) => sum + t.finalPrice, 0);
-            const totalProducts = bookingProducts?.reduce((sum, p) => sum + p.finalPrice, 0);
+            const totalTickets = ticket.reduce((sum, t) => sum + (t.finalPrice || 0), 0);
+            const totalProducts = bookingProducts?.reduce((sum, p) => sum + (p.finalPrice || 0), 0);
             const totalPrice = totalTickets + totalProducts!;
+
+            console.log(`DEBUG: Tickets: ${totalTickets}, Products: ${totalProducts}, Total: ${totalPrice}`);
 
             //intanciar a entidade principal booking(order)
             const booking = new Booking(userId, sessionId, seatIds, totalPrice, expiresAt);

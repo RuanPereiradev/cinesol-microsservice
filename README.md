@@ -45,14 +45,18 @@ O projeto utiliza **Domain-Driven Design (DDD)** e comunicação orientada a eve
 
 ### 1. Infraestrutura
 ```bash
-docker-compose up -d
+docker compose up -d zookeeper kafka kafka-ui
+```
+
+```bash
+docker compose up -d postegres
 ```
 
 ### 2. Sincronização
 ```Bash
 pnpm install
-npx prisma migrate dev
-npx prisma generate
+npx prisma generate --schema=libs/database/prisma/schema.prisma
+npx prisma studio --schema=./libs/database/prisma/schema.prisma
 ```
 ### 3. Execução (Terminais Separados)
 

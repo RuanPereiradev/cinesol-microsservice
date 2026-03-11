@@ -8,7 +8,7 @@ export class BookingController{
 
     @Post('register')
     create(@Body() createBookingDto: CreateBookingDto){
-        return this.bookingService.register(createBookingDto)
+        return this.bookingService.register(createBookingDto,)
     }
 
 }
