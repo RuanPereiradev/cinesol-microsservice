@@ -1,7 +1,7 @@
 ### Variáveis de Ambiente
 @gatewayUrl = http://localhost:3000
 @paymentServiceUrl = http://localhost:3004
-@orderId = f9a39c50-440b-484a-ad8e-1e1f43e3b068
+@orderId = 0477ea81-377c-45c6-a23b-2f697b35f2c3
 @userId = 7515bcb1-6d13-413a-b428-4f4e7adffaf3
 @bookingUrl = http://localhost:3003
 
@@ -35,14 +35,15 @@ Content-Type: application/json
 
 ### 3. Teste DIRETO (Sem prefixo /payment)
 # Alguns microserviços não usam o prefixo do gateway internamente
-POST {{paymentServiceUrl}}/registerPayment
+POST {{gatewayUrl}}/payment/registerPayment
+
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNGMzYmNiYS04MGE0LTRhNmMtYjgyMy1lODZiMjBmMWMwNGIiLCJlbWFpbCI6ImFpYWlpYWlAZXhlbXBsby5jb20iLCJpYXQiOjE3NzMyNTM5MjgsImV4cCI6MTc3MzM0MDMyOH0.XAjvrWOVAWYF8lWDlkNmyLLh8HM4n-ZXCxWtJXsvMQk
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMDNhOWZhZi02OGM1LTQ3NTktOTkwNC0yMWQ2NDc0ODE4Y2EiLCJlbWFpbCI6InJ1YW5AZXhlbXBsby5jb20iLCJpYXQiOjE3NzMzMjc2NTAsImV4cCI6MTc3MzQxNDA1MH0.JylzehacyiSQdTIBEfqXS6gV-SjJb_uBQqtl3NoOlC8
 
 {
   "orderId": "{{orderId}}",
   "method": "PIX",
-  "amount": 50.00
+  "amount": 20.00
 }
 ### BookingUrl
 POST {{bookingUrl}}/register
@@ -51,8 +52,20 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNGMzYmNiY
 
 {
   "sessionId": "19b19f8d-43f8-4962-9952-03a41fa5940f",
-  "seatIds": ["14906fff-13c3-485d-8835-dce01dfd2c35"],
-  "ticketType": "INTEIRA",
-  "basePrice": 40.00,
-  "products": []
+  "seatIds": ["15a3da8a-6bd2-4591-8e35-bda11f1dc4f6"],
+  "ticketType": "MEIA",
+  "basePrice": 40.0
+}
+
+//booking api gateway
+###
+POST {{gatewayUrl}}/booking/register
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMDNhOWZhZi02OGM1LTQ3NTktOTkwNC0yMWQ2NDc0ODE4Y2EiLCJlbWFpbCI6InJ1YW5AZXhlbXBsby5jb20iLCJpYXQiOjE3NzMzMjc2NTAsImV4cCI6MTc3MzQxNDA1MH0.JylzehacyiSQdTIBEfqXS6gV-SjJb_uBQqtl3NoOlC8
+
+{
+  "sessionId": "19b19f8d-43f8-4962-9952-03a41fa5940f",
+  "seatIds": ["1a2b8056-c3a1-454e-aa9e-0d04d857585c"],
+  "ticketType": "MEIA",
+  "basePrice": 40.0
 }

@@ -10,10 +10,12 @@ export class PaymentService {
 
     constructor(private readonly httpService: HttpService){console.log('Catalog URL Target:', this.paymentServiceUrl);}
 
-    async register(dto: PaymentDto){
+    async register(dto: PaymentDto, token: string){
         try {
             const response = await firstValueFrom(
-                this.httpService.post(`${this.paymentServiceUrl}/resgisterPayment`, dto),
+                this.httpService.post(`${this.paymentServiceUrl}/resgisterPayment`, dto, {
+                    headers: {Authorization: token}
+                }),
             );
             return response.data;
         } catch (error) {

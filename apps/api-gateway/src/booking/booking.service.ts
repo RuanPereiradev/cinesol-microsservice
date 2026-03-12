@@ -11,10 +11,12 @@ export class BookingService {
 
     constructor(private readonly httpService: HttpService){}
 
-    async register(data: CreateBookingDto){
+    async register(data: CreateBookingDto, token: string){
         try {
             const response = await firstValueFrom(
-                this.httpService.post(`${this.bookingServiceUrl}/register`, data),
+                this.httpService.post(`${this.bookingServiceUrl}/register`, data, {
+                    headers:{Authorization: token} 
+                }),
             );
             return response.data
         } catch (error) {
